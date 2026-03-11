@@ -1,0 +1,36 @@
+name: Discord Event Notify
+
+on:
+  schedule:
+    - cron: '0 7 * * 6'
+    - cron: '0 13 * * 6'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check week and send webhook
+        run: |
+          DAY=$(date +%d)
+          WEEK=$(( (10#$DAY - 1) / 7 + 1 ))
+
+          if [ "$WEEK" = "1" ] || [ "$WEEK" = "3" ]; then
+            HOUR=$(date +%H)
+            if [ "$HOUR" = "07" ]; then
+              curl -H "Content-Type: application/json" \
+              -d '{"content":"<@&1297168009743569029> \n> **会議通知**\n会議開始の時間です。\n来れる方は集合してください。"}' \
+              $WEBHOOK
+            fi
+          fi
+
+          if [ "$WEEK" = "2" ] || [ "$WEEK" = "4" ]; then
+            HOUR=$(date +%H)
+            if [ "$HOUR" = "13" ]; then
+              curl -H "Content-Type: application/json" \
+              -d '{"content":"<@&1297168009743569029> \n> **会議通知**\n会議開始の時間です。\n来れる方は集合してください。"}' \
+              $WEBHOOK
+            fi
+          fi
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}
