@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 7 * * 6'
     - cron: '0 13 * * 6'
-    - cron: '49 13 * * *'
+    - cron: '33 14 * * *'
   workflow_dispatch:
 
 jobs:
@@ -29,31 +29,19 @@ jobs:
           echo "Tokyo now: $(TZ=$TZ date)"
           echo "YEAR=$YEAR MONTH=$MONTH DAY=$DAY HOUR=$HOUR MINUTE=$MINUTE DOW=$DOW WEEK=$WEEK"
 
-          MESSAGE="<@&1297168009743569029> 
-> **会議通知**
-会議開始の時間です。
-来れる方は集合してください。"
-
-          TEST_MESSAGE="<@&1297168009743569029> 
-> **会議通知（テスト）**
-テスト通知です。"
+          MESSAGE=$'<@&1297168009743569029>\n> **会議通知**\n会議開始の時間です。\n来れる方は集合してください。'
+          TEST_MESSAGE=$'TEST メンション\n> **会議通知（テスト）**\nテスト通知です。'
 
           send_webhook() {
             local content="$1"
-            DISCORD_CONTENT="$content" python3 - <<'PY' > body.json
-import json
-import os
-
-content = os.environ["DISCORD_CONTENT"]
-print(json.dumps({"content": content}, ensure_ascii=False))
-PY
-            curl -X POST "$WEBHOOK" \
+            jq -n --arg content "$content" '{content: $content}' > body.json
+            curl -sS -X POST "$WEBHOOK" \
               -H "Content-Type: application/json" \
               --data @body.json
           }
 
           # テスト用
-          if [ "$HOUR" = "22" ] && [ "$MINUTE" = "49" ]; then
+          if [ "$HOUR" = "0" ] && [ "$MINUTE" = "33" ]; then
             echo "Test schedule matched."
             send_webhook "$TEST_MESSAGE"
             exit 0
