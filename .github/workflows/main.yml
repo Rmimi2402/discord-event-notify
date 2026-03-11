@@ -2,12 +2,9 @@ name: Discord Event Notify
 
 on:
   schedule:
-    # 第1・第3土曜 16:00 JST 用
     - cron: '0 7 * * 6'
-    # 第2・第4土曜 22:00 JST 用
     - cron: '0 13 * * 6'
-    # テスト用（毎日 22:35 JST に実行）
-    - cron: '44 13 * * *'
+    - cron: '49 13 * * *'
   workflow_dispatch:
 
 jobs:
@@ -26,48 +23,53 @@ jobs:
           DAY=$(TZ=$TZ date +%d)
           HOUR=$(TZ=$TZ date +%H)
           MINUTE=$(TZ=$TZ date +%M)
-          DOW=$(TZ=$TZ date +%u)   # 1=Mon ... 6=Sat 7=Sun
+          DOW=$(TZ=$TZ date +%u)
           WEEK=$(( (10#$DAY - 1) / 7 + 1 ))
 
           echo "Tokyo now: $(TZ=$TZ date)"
           echo "YEAR=$YEAR MONTH=$MONTH DAY=$DAY HOUR=$HOUR MINUTE=$MINUTE DOW=$DOW WEEK=$WEEK"
 
-          MESSAGE="<@&1297168009743569029> \n> **会議通知**\n会議開始の時間です。\n来れる方は集合してください。"
+          MESSAGE="<@&1297168009743569029> 
+> **会議通知**
+会議開始の時間です。
+来れる方は集合してください。"
 
-          TEST_MESSAGE="<@&1297168009743569029> \n> **会議通知（テスト）**\nテスト通知です。"
+          TEST_MESSAGE="<@&1297168009743569029> 
+> **会議通知（テスト）**
+テスト通知です。"
 
           send_webhook() {
             local content="$1"
+            DISCORD_CONTENT="$content" python3 - <<'PY' > body.json
+import json
+import os
+
+content = os.environ["DISCORD_CONTENT"]
+print(json.dumps({"content": content}, ensure_ascii=False))
+PY
             curl -X POST "$WEBHOOK" \
               -H "Content-Type: application/json" \
-              -d "$(printf '{"content":"%s"}' "$content" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+              --data @body.json
           }
 
-          # -------------------------
           # テスト用
-          # 毎日 22:44 JST に通知
-          # 不要になったらこの if ブロックごと消してOK
-          # -------------------------
-          if [ "$HOUR" = "22" ] && [ "$MINUTE" = "44" ]; then
+          if [ "$HOUR" = "22" ] && [ "$MINUTE" = "49" ]; then
             echo "Test schedule matched."
             send_webhook "$TEST_MESSAGE"
             exit 0
           fi
 
-          # 土曜日以外は終了
           if [ "$DOW" != "6" ]; then
             echo "Not Saturday. Skip."
             exit 0
           fi
 
-          # 第1・第3土曜 16:00 JST
           if { [ "$WEEK" = "1" ] || [ "$WEEK" = "3" ]; } && [ "$HOUR" = "16" ] && [ "$MINUTE" = "00" ]; then
             echo "Matched 1st/3rd Saturday 16:00 JST"
             send_webhook "$MESSAGE"
             exit 0
           fi
 
-          # 第2・第4土曜 22:00 JST
           if { [ "$WEEK" = "2" ] || [ "$WEEK" = "4" ]; } && [ "$HOUR" = "22" ] && [ "$MINUTE" = "00" ]; then
             echo "Matched 2nd/4th Saturday 22:00 JST"
             send_webhook "$MESSAGE"
