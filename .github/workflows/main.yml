@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 7 * * 6'
     - cron: '0 13 * * 6'
-    - cron: '33 14 * * *'
+    - cron: '55 17 * * *'
   workflow_dispatch:
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
           }
 
           # テスト用
-          if [ "$HOUR" = "0" ] && [ "$MINUTE" = "33" ]; then
+          if [ "$HOUR" = "2" ] && [ "$MINUTE" = "55" ]; then
             echo "Test schedule matched."
             send_webhook "$TEST_MESSAGE"
             exit 0
