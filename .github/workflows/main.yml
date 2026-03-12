@@ -1,10 +1,11 @@
 name: Discord Event Notify
 
 on:
+  push:
   schedule:
     - cron: '0 7 * * 6'
     - cron: '0 13 * * 6'
-    - cron: '45 12 * * *'
+    - cron: '55 12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -41,7 +42,7 @@ jobs:
           }
 
           # テスト用
-          if [ "$HOUR" = "21" ] && [ "$MINUTE" = "45" ]; then
+          if [ "$HOUR" = "21" ]; then
             echo "Test schedule matched."
             send_webhook "$TEST_MESSAGE"
             exit 0
