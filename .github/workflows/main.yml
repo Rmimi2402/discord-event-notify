@@ -41,7 +41,7 @@ jobs:
           }
 
           # テスト用
-          if [ "$HOUR" = "21" ]; then
+          if [ "$HOUR" = "22" ]; then
             echo "Test schedule matched."
             send_webhook "$TEST_MESSAGE"
             exit 0
